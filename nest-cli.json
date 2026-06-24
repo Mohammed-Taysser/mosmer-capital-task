@@ -1,14 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/mosmer-capital-task/src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": true,
-    "tsConfigPath": "apps/mosmer-capital-task/tsconfig.app.json"
+    "webpack": true
   },
   "monorepo": true,
-  "root": "apps/mosmer-capital-task",
   "projects": {
     "inventory": {
       "type": "application",
@@ -17,15 +14,6 @@
       "sourceRoot": "apps/inventory/src",
       "compilerOptions": {
         "tsConfigPath": "apps/inventory/tsconfig.app.json"
-      }
-    },
-    "mosmer-capital-task": {
-      "type": "application",
-      "root": "apps/mosmer-capital-task",
-      "entryFile": "main",
-      "sourceRoot": "apps/mosmer-capital-task/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/mosmer-capital-task/tsconfig.app.json"
       }
     },
     "orders": {
