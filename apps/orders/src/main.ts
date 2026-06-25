@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { OrdersAppModule } from './orders-app.module';
 
 async function bootstrap() {
@@ -28,9 +29,22 @@ async function bootstrap() {
     },
   });
 
-  await app.startAllMicroservices();
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Orders Service')
+    .setDescription(
+      'REST API for creating and tracking orders.\n\n' +
+        'Orders are created as **PENDING** and transition asynchronously to ' +
+        '**CONFIRMED** or **FAILED** once the Inventory service processes the `order.created` Kafka event.',
+    )
+    .setVersion('1.0')
+    .addTag('Orders')
+    .build();
 
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api', app, document);
+
+  await app.startAllMicroservices();
   await app.listen(config.getOrThrow<number>('ORDERS_PORT'));
 }
 
-void bootstrap();
+bootstrap();
