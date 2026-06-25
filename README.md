@@ -47,7 +47,7 @@ Kafka consumer + producer (no public REST API required).
 
 Not required, but a plus if time allows:
 
-- [ ] Consumer retry and/or dead-letter handling.
+- [ ] Consumer retry and/or dead-letter handling (I add retries using kafka build-in feature).
 - [x] Idempotent consumers that safely handle duplicate events. (I don't know if we need to create specific service for it, for now i use db to check existing events)
 - [x] A correlation / trace ID propagated through the events.
 - [x] A basic unit test covering the order status transition logic.

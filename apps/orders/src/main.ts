@@ -25,6 +25,12 @@ async function bootstrap() {
       },
       consumer: {
         groupId: config.getOrThrow<string>('KAFKA_ORDERS_GROUP_ID'),
+        retry: {
+          retries: 3,
+          factor: 2,
+          minTimeout: 1000,
+          maxTimeout: 30000,
+        },
       },
     },
   });
