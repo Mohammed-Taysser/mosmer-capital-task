@@ -13,8 +13,19 @@ export class InventoryService {
   ) {}
 
   async processOrder(event: OrderCreatedEvent): Promise<void> {
-    const { orderId, correlationId, data } = event;
+    const { eventId, orderId, correlationId, data } = event;
     const { items } = data;
+
+    const existingEvent = await this.prisma.processedEvent.findUnique({
+      where: { eventId },
+    });
+
+    if (existingEvent) {
+      this.logger.log(
+        `Event ${eventId} already processed, skipping (correlationId=${correlationId})`,
+      );
+      return;
+    }
 
     try {
       await this.prisma.$transaction(async (tx) => {
@@ -40,6 +51,10 @@ export class InventoryService {
         }
       });
 
+      await this.prisma.processedEvent.create({
+        data: { eventId, correlationId },
+      });
+
       this.kafka.emitEvent(KAFKA_TOPICS.ORDER_CONFIRMED, {
         eventId: randomUUID(),
         correlationId,
@@ -53,6 +68,10 @@ export class InventoryService {
         `Published order.confirmed orderId=${orderId} correlationId=${correlationId}`,
       );
     } catch (error) {
+      await this.prisma.processedEvent.create({
+        data: { eventId, correlationId },
+      });
+
       this.kafka.emitEvent(KAFKA_TOPICS.ORDER_FAILED, {
         eventId: randomUUID(),
         correlationId,

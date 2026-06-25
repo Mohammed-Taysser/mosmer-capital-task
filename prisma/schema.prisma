@@ -38,3 +38,13 @@ model Stock {
   sku      String @unique
   quantity Int
 }
+
+model ProcessedEvent {
+  id            Int      @id @default(autoincrement())
+  eventId       String   @unique
+  correlationId String
+  processedAt   DateTime @default(now())
+
+  @@index([correlationId])
+  @@index([eventId])
+}

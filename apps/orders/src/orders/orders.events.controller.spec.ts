@@ -1,7 +1,7 @@
 import {
-  KAFKA_TOPICS,
   OrderConfirmedEvent,
   OrderFailedEvent,
+  PrismaService,
 } from '@app/shared';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersEventsController } from './orders.events.controller';
@@ -20,12 +20,22 @@ describe('OrdersEventsController', () => {
     markOrderAsFailed: jest.fn(),
   };
 
+  const prisma = {
+    processedEvent: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    },
+  };
+
   let controller: OrdersEventsController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OrdersEventsController],
-      providers: [{ provide: OrdersService, useValue: ordersService }],
+      providers: [
+        { provide: OrdersService, useValue: ordersService },
+        { provide: PrismaService, useValue: prisma },
+      ],
     }).compile();
 
     controller = module.get<OrdersEventsController>(OrdersEventsController);

@@ -17,14 +17,18 @@ describe('InventoryService', () => {
     occurredAt: new Date().toISOString(),
     data: {
       items: [
-        { id: 1, sku: 'SKU-101', quantity: 2 },
-        { id: 2, sku: 'SKU-102', quantity: 1 },
+        { sku: 'SKU-101', quantity: 2 },
+        { sku: 'SKU-102', quantity: 1 },
       ],
     },
   };
 
   const prisma = {
     $transaction: jest.fn(),
+    processedEvent: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    },
     stock: {
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -120,8 +124,8 @@ describe('InventoryService', () => {
         ...mockEvent,
         data: {
           items: [
-            { id: 1, sku: 'SKU-101', quantity: 2 },
-            { id: 2, sku: 'SKU-102', quantity: 3 },
+            { sku: 'SKU-101', quantity: 2 },
+            { sku: 'SKU-102', quantity: 3 },
           ],
         },
       };
