@@ -1,10 +1,11 @@
-interface OrderFailedEvent {
-  eventId: string;
-  orderId: string;
-  occurredAt: string;
-  data: {
-    reason: string;
+class OrderFailedEvent {
+  eventId!: string;
+  correlationId!: string;
+  orderId!: number;
+  occurredAt!: string;
+  data?: {
+    reason?: string;
   };
 }
 
-export { type OrderFailedEvent };
+export { OrderFailedEvent };

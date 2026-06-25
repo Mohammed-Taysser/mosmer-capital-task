@@ -1,13 +1,13 @@
+import { KAFKA_TOPICS, OrderCreatedEvent, PrismaService } from '@app/shared';
+import { KafkaService } from '@app/shared/kafka/kafka.service';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { OrderStatus, type Prisma } from '@prisma/client';
-import { KAFKA_TOPICS, PrismaService } from '@app/shared';
-import { CreateOrderDto } from './dto/create-order.dto';
 import { randomUUID } from 'node:crypto';
-import { KafkaService } from '@app/shared/kafka/kafka.service';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 type OrderWithItems = Prisma.OrderGetPayload<{
   include: {
@@ -41,7 +41,20 @@ class OrdersService {
       },
     });
 
-    this.kafka.emitEvent(KAFKA_TOPICS.ORDER_CREATED, order);
+    const event: OrderCreatedEvent = {
+      eventId: randomUUID(),
+      correlationId: order.correlationId,
+      orderId: order.id,
+      occurredAt: order.createdAt.toISOString(),
+      data: {
+        items: order.items.map((item) => ({
+          sku: item.sku,
+          quantity: item.quantity,
+        })),
+      },
+    };
+
+    this.kafka.emitEvent(KAFKA_TOPICS.ORDER_CREATED, event);
 
     return order;
   }
@@ -59,6 +72,29 @@ class OrdersService {
     }
 
     return order;
+  }
+
+  async markOrderAsConfirmed(id: number): Promise<void> {
+    await this.findById(id);
+
+    await this.prisma.order.update({
+      where: { id },
+      data: {
+        status: OrderStatus.CONFIRMED,
+      },
+    });
+  }
+
+  async markOrderAsFailed(id: number, reason: string): Promise<void> {
+    await this.findById(id);
+
+    await this.prisma.order.update({
+      where: { id },
+      data: {
+        status: OrderStatus.FAILED,
+        failureReason: reason,
+      },
+    });
   }
 
   private validateUniqueSkus(dto: CreateOrderDto): void {

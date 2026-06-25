@@ -1,10 +1,11 @@
-interface OrderConfirmedEvent {
-  eventId: string;
-  orderId: string;
-  occurredAt: string;
-  data: {
+class OrderConfirmedEvent {
+  eventId!: string;
+  correlationId!: string;
+  orderId!: number;
+  occurredAt!: string;
+  data!: {
     confirmedAt: string;
   };
 }
 
-export { type OrderConfirmedEvent };
+export { OrderConfirmedEvent };

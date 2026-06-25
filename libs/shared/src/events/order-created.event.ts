@@ -1,13 +1,16 @@
-interface OrderCreatedEvent {
-  eventId: string;
-  orderId: string;
-  occurredAt: string;
-  data: {
-    items: Array<{
-      sku: string;
-      quantity: number;
-    }>;
+class OrderCreatedItem {
+  sku!: string;
+  quantity!: number;
+}
+
+class OrderCreatedEvent {
+  eventId!: string;
+  correlationId!: string;
+  orderId!: number;
+  occurredAt!: string;
+  data!: {
+    items: OrderCreatedItem[];
   };
 }
 
-export { type OrderCreatedEvent };
+export { OrderCreatedEvent, OrderCreatedItem };
