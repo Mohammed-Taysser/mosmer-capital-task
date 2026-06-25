@@ -32,3 +32,9 @@ model OrderItem {
   @@unique([orderId, sku])
   @@index([orderId])
 }
+
+model Stock {
+  id       Int    @id
+  sku      String @unique
+  quantity Int
+}

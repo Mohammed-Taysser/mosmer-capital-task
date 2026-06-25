@@ -6,6 +6,7 @@ import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { PrismaModule } from './prisma/prisma.module';
 import { SharedService } from './shared.service';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SharedService } from './shared.service';
       validate,
     }),
     PrismaModule,
+    KafkaModule,
   ],
   providers: [
     SharedService,
@@ -27,6 +29,6 @@ import { SharedService } from './shared.service';
       useClass: ResponseInterceptor,
     },
   ],
-  exports: [ConfigModule, PrismaModule, SharedService],
+  exports: [ConfigModule, PrismaModule, SharedService, KafkaModule],
 })
 export class SharedModule {}

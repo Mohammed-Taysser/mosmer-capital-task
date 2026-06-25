@@ -1,5 +1,6 @@
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance, Transform } from 'class-transformer';
 import {
+  IsArray,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -26,9 +27,35 @@ class EnvironmentVariables {
 
   @IsString()
   @IsNotEmpty()
+  DATABASE_URL!: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  @Transform(({ value }: { value: unknown }): string[] => {
+    if (typeof value === 'string') {
+      return value.split(',').map((broker) => broker.trim());
+    }
+    // Fallback to an empty array if the input is missing or malformed
+    return Array.isArray(value) ? value : [];
+  })
+  KAFKA_BROKERS!: string[];
+
   @IsString()
   @IsNotEmpty()
-  DATABASE_URL!: string;
+  KAFKA_ORDERS_CLIENT_ID!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KAFKA_INVENTORY_CLIENT_ID!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KAFKA_ORDERS_GROUP_ID!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  KAFKA_INVENTORY_GROUP_ID!: string;
 }
 
 function validate(config: Record<string, unknown>): EnvironmentVariables {

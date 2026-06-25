@@ -4,9 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { OrderStatus, type Prisma } from '@prisma/client';
-import { PrismaService } from '@app/shared';
+import { KAFKA_TOPICS, PrismaService } from '@app/shared';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { randomUUID } from 'node:crypto';
+import { KafkaService } from '@app/shared/kafka/kafka.service';
 
 type OrderWithItems = Prisma.OrderGetPayload<{
   include: {
@@ -16,12 +17,15 @@ type OrderWithItems = Prisma.OrderGetPayload<{
 
 @Injectable()
 class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly kafka: KafkaService,
+  ) {}
 
-  create(dto: CreateOrderDto): Promise<OrderWithItems> {
+  async create(dto: CreateOrderDto): Promise<OrderWithItems> {
     this.validateUniqueSkus(dto);
 
-    return this.prisma.order.create({
+    const order = await this.prisma.order.create({
       data: {
         status: OrderStatus.PENDING,
         correlationId: randomUUID(),
@@ -36,6 +40,10 @@ class OrdersService {
         items: true,
       },
     });
+
+    this.kafka.emitEvent(KAFKA_TOPICS.ORDER_CREATED, order);
+
+    return order;
   }
 
   async findById(id: number): Promise<OrderWithItems> {
