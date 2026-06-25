@@ -1,98 +1,53 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS Microservices with Apache Kafka
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Build a small event-driven system composed of two NestJS microservices that communicate asynchronously over Apache Kafka. The goal of this task is to evaluate your understanding of event-driven architecture, clean NestJS module structure, and Kafka integration — not production-level polish.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Scenario: Order Processing System
 
-## Description
+You will build two services that together process customer orders:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Orders Service** — exposes a REST API and acts as a Kafka producer/consumer.
+- **Inventory Service** — consumes order events, checks stock, and emits result events.
 
-## Project setup
+## Event Flow
 
-```bash
-$ yarn install
-```
+1. Client calls `POST /orders` on the Orders Service. The order is saved with status `PENDING` and an `order.created` event is published to Kafka.
+2. Inventory Service consumes `order.created`, checks stock for the requested items, and publishes either `order.confirmed` or `order.failed`.
+3. Orders Service consumes the result event and updates the order status to `CONFIRMED` or `FAILED`.
+4. Client can call `GET /orders/:id` at any time to read the current status.
 
-## Compile and run the project
+## Service 1 — Orders Service
 
-```bash
-# development
-$ yarn run start
+REST API + Kafka producer and consumer.
 
-# watch mode
-$ yarn run start:dev
+- `POST /orders` — validate the request body with class-validator, persist the order, publish `order.created`.
+- `GET /orders/:id` — return the order with its current status.
+- Order status lifecycle: `PENDING` → `CONFIRMED` or `PENDING` → `FAILED`.
+- Consume `order.confirmed` / `order.failed` and update the stored order accordingly.
 
-# production mode
-$ yarn run start:prod
-```
+## Service 2 — Inventory Service
 
-## Run tests
+Kafka consumer + producer (no public REST API required).
 
-```bash
-# unit tests
-$ yarn run test
+- Consume `order.created`.
+- Check stock for the requested items (stock can be seeded or mocked in the database).
+- Publish `order.confirmed` if all items are in stock, otherwise `order.failed`.
 
-# e2e tests
-$ yarn run test:e2e
+## Core Requirements
 
-# test coverage
-$ yarn run test:cov
-```
+- Use NestJS microservice transport via `@nestjs/microservices` with the Kafka transport — not raw kafkajs wired by hand.
+- Provide a working `docker-compose.yml` that spins up Kafka, both services, and the database.
+- Use a real database (PostgreSQL preferred) with a simple schema or migration.
+- Validate all incoming DTOs and handle errors gracefully, including consumer failures.
+- Read broker URLs, DB connection, and similar values from environment variables — nothing hardcoded.
+- Keep clean module structure: separate controllers, services, and event handlers.
+- Include a short README explaining how to run the project and describing the event flow.
 
-## Deployment
+## Bonus (Optional — Signals Seniority)
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Not required, but a plus if time allows:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- [ ] Consumer retry and/or dead-letter handling.
+- [ ] Idempotent consumers that safely handle duplicate events.
+- [ ] A correlation / trace ID propagated through the events.
+- [ ] A basic unit test covering the order status transition logic.
