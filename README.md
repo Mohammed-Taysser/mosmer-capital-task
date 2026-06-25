@@ -49,5 +49,5 @@ Not required, but a plus if time allows:
 
 - [ ] Consumer retry and/or dead-letter handling.
 - [ ] Idempotent consumers that safely handle duplicate events.
-- [ ] A correlation / trace ID propagated through the events.
-- [ ] A basic unit test covering the order status transition logic.
+- [x] A correlation / trace ID propagated through the events.
+- [x] A basic unit test covering the order status transition logic.

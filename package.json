@@ -85,6 +85,9 @@
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
+    "setupFiles": [
+      "<rootDir>/test/jest-setup.ts"
+    ],
     "roots": [
       "<rootDir>/apps/",
       "<rootDir>/libs/"

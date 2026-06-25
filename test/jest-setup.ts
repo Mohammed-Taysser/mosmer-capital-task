@@ -1,0 +1,9 @@
+process.env.NODE_ENV = 'test';
+process.env.ORDERS_PORT = '3001';
+process.env.DATABASE_URL =
+  'postgresql://app:app@localhost:5432/mosmer-capital-task?schema=public';
+process.env.KAFKA_BROKERS = 'localhost:9092';
+process.env.KAFKA_ORDERS_CLIENT_ID = 'orders-service';
+process.env.KAFKA_INVENTORY_CLIENT_ID = 'inventory-service';
+process.env.KAFKA_ORDERS_GROUP_ID = 'orders-consumer';
+process.env.KAFKA_INVENTORY_GROUP_ID = 'inventory-consumer';
