@@ -3,21 +3,31 @@ import {
   OrderConfirmedEvent,
   OrderFailedEvent,
 } from '@app/shared';
-import { Controller } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 import { OrdersService } from './orders.service';
 
 @Controller()
 export class OrdersEventsController {
+  private readonly logger = new Logger(OrdersEventsController.name);
+
   constructor(private readonly ordersService: OrdersService) {}
 
   @EventPattern(KAFKA_TOPICS.ORDER_CONFIRMED)
   async handleOrderConfirmed(@Payload() event: OrderConfirmedEvent) {
+    this.logger.log(
+      `Received order.confirmed orderId=${event.orderId} correlationId=${event.correlationId}`,
+    );
+
     await this.ordersService.markOrderAsConfirmed(event.orderId);
   }
 
   @EventPattern(KAFKA_TOPICS.ORDER_FAILED)
   async handleOrderFailed(@Payload() event: OrderFailedEvent) {
+    this.logger.log(
+      `Received order.failed orderId=${event.orderId} correlationId=${event.correlationId}`,
+    );
+
     const reason = event.data?.reason || 'Inventory check failed';
 
     await this.ordersService.markOrderAsFailed(event.orderId, reason);

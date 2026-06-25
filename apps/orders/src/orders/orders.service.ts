@@ -3,6 +3,7 @@ import { KafkaService } from '@app/shared/kafka/kafka.service';
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { OrderStatus, type Prisma } from '@prisma/client';
@@ -17,6 +18,8 @@ type OrderWithItems = Prisma.OrderGetPayload<{
 
 @Injectable()
 class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly kafka: KafkaService,
@@ -55,6 +58,9 @@ class OrdersService {
     };
 
     this.kafka.emitEvent(KAFKA_TOPICS.ORDER_CREATED, event);
+    this.logger.log(
+      `Published order.created orderId=${order.id} correlationId=${order.correlationId}`,
+    );
 
     return order;
   }

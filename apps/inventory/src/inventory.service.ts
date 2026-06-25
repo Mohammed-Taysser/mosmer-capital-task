@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { KAFKA_TOPICS, PrismaService, OrderCreatedEvent } from '@app/shared';
 import { KafkaService } from '@app/shared/kafka/kafka.service';
 import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class InventoryService {
+  private readonly logger = new Logger(InventoryService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly kafka: KafkaService,
@@ -47,6 +49,9 @@ export class InventoryService {
           confirmedAt: new Date().toISOString(),
         },
       });
+      this.logger.log(
+        `Published order.confirmed orderId=${orderId} correlationId=${correlationId}`,
+      );
     } catch (error) {
       this.kafka.emitEvent(KAFKA_TOPICS.ORDER_FAILED, {
         eventId: randomUUID(),
@@ -58,6 +63,9 @@ export class InventoryService {
             error instanceof Error ? error?.message : 'Unknown inventory error',
         },
       });
+      this.logger.log(
+        `Published order.failed orderId=${orderId} correlationId=${correlationId}`,
+      );
     }
   }
 }
